@@ -13,12 +13,21 @@ export default function DigitizePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
       <div className="flex flex-col md:flex-row gap-8 w-full max-w-5xl p-6">
-        {/* Left: Controls with Preview */}
+        {/* Left: Controls with Preview or Camera */}
         <div className="flex-1 flex items-center justify-center">
-          <UploadControls setShowCamera={setShowCamera} setImage={setImage} image={image} />
+          {showCamera ? (
+            <CameraCapture
+              videoRef={videoRef}
+              canvasRef={canvasRef}
+              setImage={setImage}
+              setShowCamera={setShowCamera}
+            />
+          ) : (
+            <UploadControls setShowCamera={setShowCamera} setImage={setImage} image={image} />
+          )}
         </div>
         {/* Right: Placeholder for processed text */}
-        <div className="flex-1 flex items-center justify-center bg-white rounded-xl shadow-lg border p-8">
+        <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md flex flex-col items-center justify-center border">
           <span className="text-gray-400 text-lg text-center">
             your processed text will appear here
           </span>
