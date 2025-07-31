@@ -5,9 +5,38 @@ import { CameraIcon, UploadIcon } from "@radix-ui/react-icons";
 
 export default function DigitizePage() {
   const [image, setImage] = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Start webcam
+  const startCamera = async () => {
+    setShowCamera(true);
+    if (navigator.mediaDevices && videoRef.current) {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoRef.current.srcObject = stream;
+      videoRef.current.play();
+    }
+  };
+
+  // Capture photo from webcam
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext("2d");
+      if (context) {
+        context.drawImage(videoRef.current, 0, 0, 256, 256);
+        const dataUrl = canvasRef.current.toDataURL("image/png");
+        setImage(dataUrl);
+        // Stop the camera
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+        setShowCamera(false);
+      }
+    }
+  };
+
+  // Handle file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -44,16 +73,9 @@ export default function DigitizePage() {
               >
                 <UploadIcon /> Upload a Picture
               </Button>
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                ref={cameraInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-                onClick={() => cameraInputRef.current?.click()}
+              <Button
+                className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                onClick={startCamera}
               >
                 <CameraIcon /> Use Camera
               </Button>
@@ -64,25 +86,49 @@ export default function DigitizePage() {
         {/* Right Page */}
         <div className="md:w-1/2 w-full flex items-center justify-center p-8 bg-white border">
           <div className="flex flex-col items-center">
-            <div className="w-64 h-64 bg-gray-100 rounded-lg flex items-center justify-center border mb-4 overflow-hidden">
-              {image ? (
-                <img
-                  src={image}
-                  alt="Preview"
-                  className="object-contain w-full h-full"
+            {showCamera ? (
+              <div className="flex flex-col items-center">
+                <video
+                  ref={videoRef}
+                  width={256}
+                  height={256}
+                  autoPlay
+                  className="rounded mb-2"
                 />
-              ) : (
-                <span className="text-gray-400 text-lg">
-                  Preview will appear here
-                </span>
-              )}
-            </div>
+                <canvas
+                  ref={canvasRef}
+                  width={256}
+                  height={256}
+                  style={{ display: "none" }}
+                />
+                <Button
+                  className="mt-2 bg-blue-600 text-white"
+                  onClick={capturePhoto}
+                >
+                  Capture Photo
+                </Button>
+              </div>
+            ) : (
+              <div className="w-64 h-64 bg-gray-100 rounded-lg flex items-center justify-center border mb-4 overflow-hidden">
+                {image ? (
+                  <img
+                    src={image}
+                    alt="Preview"
+                    className="object-contain w-full h-full"
+                  />
+                ) : (
+                  <span className="text-gray-400 text-lg">
+                    Preview will appear here
+                  </span>
+                )}
+              </div>
+            )}
             <p className="text-gray-500 text-center">
               Once you upload or capture a photo, a preview will be shown here.
             </p>
           </div>
         </div>
-      </div>
+        </div>
     </main>
   );
 }
