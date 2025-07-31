@@ -14,7 +14,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ image }) => (
       />
     ) : (
       <span className="text-gray-400 text-lg">
-        Preview will appear here
+        your image will appear here
       </span>
     )}
   </div>
